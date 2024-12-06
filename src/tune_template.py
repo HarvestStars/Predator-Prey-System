@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.stats import ttest_ind
 
 def generate_proposal_function(step_size):
     """
@@ -65,6 +64,7 @@ def evaluate_parameter_config(objective_func, t_data, x_data, y_data,
     proposal_func = generate_proposal_function(step_size)
     
     final_values = []
+    final_states = []  # To store best states from each run
     all_histories = []  # To store iteration_history from each run
     
     for _ in range(num_runs):
@@ -81,10 +81,12 @@ def evaluate_parameter_config(objective_func, t_data, x_data, y_data,
             max_iter=max_iter
         )
         final_values.append(best_val)
+        final_states.append(best_state)
         all_histories.append(iteration_history)
 
     # Compute error margins for final values
     mean_val = float(np.mean(final_values))
+    mean_state = np.mean(final_states, axis=0)
     std_val = float(np.std(final_values))
     
     # Analyze convergence behavior
@@ -109,6 +111,7 @@ def evaluate_parameter_config(objective_func, t_data, x_data, y_data,
 
     return {
         'mean_final_objective': mean_val,
+        'mean_final_state': mean_state,
         'std_final_objective': std_val,
         'final_values': final_values,
         'mean_convergence_curve': mean_curve,
@@ -175,95 +178,6 @@ def tune_sa_parameters(objective_func, t_data, x_data, y_data, param_bounds,
                     results[config_key] = stats
 
     return results
-
-def evaluate_generalization_with_increasing_samples(
-    objective_func,
-    full_t_data, full_x_data, full_y_data,
-    param_bounds,
-    initial_state_guess,
-    initial_temp_candidates, alpha_candidates,
-    step_size_candidates, max_iter_candidates,
-    sample_sizes,
-    num_runs=10
-):
-    """
-    Evaluate the generalization ability of SA parameter settings as the sample size increases.
-    
-    Parameters
-    ----------
-    - objective_func: callable
-        The objective function: objective_func(params, t_data, x_data, y_data) -> float
-    - full_t_data, full_x_data, full_y_data: arrays
-        The full dataset. We will use subsets of this dataset to simulate smaller sample sizes.
-    - param_bounds: tuple of tuples
-        Bounds for parameters ((a_min,a_max),(b_min,b_max),(c_min,c_max),(d_min,d_max)).
-    - initial_state_guess: array-like
-        Initial guess for parameters (a,b,c,d).
-    - initial_temp_candidates, alpha_candidates, step_size_candidates, max_iter_candidates:
-        Lists of candidate parameters for SA tuning.
-    - sample_sizes: list of int
-        A list of sample sizes (e.g., [20, 50, 100, 200]) indicating we first use first 20 points,
-        then first 50 points, and so on.
-    - num_runs: int
-        Number of runs per configuration to gather statistics for each sample size.
-
-    Returns
-    -------
-    generalization_results: dict
-        A dictionary with keys = sample_size, values = {
-            'best_config': (T0, alpha, step_size, max_iter),
-            'best_performance_stats': {...},   # metrics for the best config at this sample size
-            'all_configs_results': {config_key: stats, ...}
-        }
-        
-    This allows you to:
-    - See how the best parameter config changes or remains stable as the sample size grows.
-    - Observe if performance metrics (mean_final_objective, std_final_objective, etc.) improve,
-      remain stable, or degrade when using more data.
-    """
-    generalization_results = {}
-
-    # Sort sample sizes to grow from smaller to larger datasets
-    sample_sizes = sorted(sample_sizes)
-    
-    for size in sample_sizes:
-        # Extract subset of data
-        t_sub = full_t_data[:size]
-        x_sub = full_x_data[:size]
-        y_sub = full_y_data[:size]
-
-        # Tune SA parameters on this subset
-        results = tune_sa_parameters(
-            objective_func=objective_func,
-            t_data=t_sub,
-            x_data=x_sub,
-            y_data=y_sub,
-            param_bounds=param_bounds,
-            initial_state_guess=initial_state_guess,
-            initial_temp_candidates=initial_temp_candidates,
-            alpha_candidates=alpha_candidates,
-            step_size_candidates=step_size_candidates,
-            max_iter_candidates=max_iter_candidates,
-            num_runs=num_runs
-        )
-
-        # Identify best config based on mean_final_objective
-        best_config = None
-        best_mean_val = float('inf')
-        best_stats = None
-        for config_key, stats in results.items():
-            if stats['mean_final_objective'] < best_mean_val:
-                best_mean_val = stats['mean_final_objective']
-                best_config = config_key
-                best_stats = stats
-
-        generalization_results[size] = {
-            'best_config': best_config,
-            'best_performance_stats': best_stats,
-            'all_configs_results': results
-        }
-
-    return generalization_results
 
 def evaluate_generalization_with_incremental_data(
     objective_func,

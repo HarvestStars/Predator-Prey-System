@@ -24,6 +24,8 @@ def simulated_annealing(objective_h, t_data, x_data, y_data, initial_state, boun
     temperature = initial_temp
 
     for i in range(max_iter):
+        # TODO: record each iteration's the h_new_value and x_new_state.
+        
         # Step 1: Generate a new candidate state using proposal function
         x_new_state = proposal_func(x_current_state)
         x_new_state = np.clip(x_new_state, *zip(*bounds))  # Ensure parameters stay within bounds
