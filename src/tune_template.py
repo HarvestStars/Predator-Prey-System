@@ -66,6 +66,7 @@ def evaluate_parameter_config(objective_func, t_data, x_data, y_data,
     
     final_values = []
     final_states = []  # To store best states from each run
+    final_states = []  # To store best states from each run
     all_histories = []  # To store iteration_history from each run
     
     for _ in range(num_runs):
@@ -83,10 +84,12 @@ def evaluate_parameter_config(objective_func, t_data, x_data, y_data,
         )
         final_values.append(best_val)
         final_states.append(best_state)
+        final_states.append(best_state)
         all_histories.append(iteration_history)
 
     # Compute error margins for final values
     mean_val = float(np.mean(final_values))
+    mean_state = np.mean(final_states, axis=0)
     mean_state = np.mean(final_states, axis=0)
     std_val = float(np.std(final_values))
     
@@ -112,6 +115,7 @@ def evaluate_parameter_config(objective_func, t_data, x_data, y_data,
 
     return {
         'mean_final_objective': mean_val,
+        'mean_final_state': mean_state,
         'mean_final_state': mean_state,
         'std_final_objective': std_val,
         'final_values': final_values,
