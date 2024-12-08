@@ -1,8 +1,9 @@
 from scipy.integrate import odeint
 import numpy as np
+import matplotlib.pyplot as plt
 import SA as SA
 
-# load data from path, csv file
+# Load data from path, csv file
 def load_data():
     data = np.loadtxt("../observed_data/predator-prey-data.csv", delimiter=",")
     return data[:, 0], data[:, 1], data[:, 2]
@@ -14,11 +15,11 @@ def lotka_volterra(y, t, alpha, beta, delta, gamma):
     dydt = delta * x * y - gamma * y
     return [dxdt, dydt]
 
-# symetric proposal function to generate a new state
+# Symetric proposal function to generate a new state
 def proposal_func(x):
     return x + np.random.normal(0, 0.1, size=x.shape)
 
-# objective function to minimize (sum of squared errors)
+# Objective function to minimize (sum of squared errors)
 def objective(params, t_data, x_data, y_data):
     alpha, beta, delta, gamma = params
     y0 = [x_data[0], y_data[0]]  # Initial condition
@@ -45,3 +46,30 @@ if __name__ == "__main__":
 
     print("Best Parameters (alpha, beta, delta, gamma):", best_params)
     print("Best Mean Squared Error:", best_mse)
+
+    # Compute the Lotka-Volterra model using the best parameters
+    y0 = [x_data[0], y_data[0]]
+    alpha, beta, delta, gamma = best_params
+    solution = odeint(lotka_volterra, y0, t_data, args=(alpha, beta, delta, gamma))
+    prey = solution[:, 0]
+    predator = solution[:, 1]
+    
+    # Plot the observed data and the best fit
+    fig, axis = plt.subplots(1, 2, figsize=(12, 6))
+    axis[0].plot(t_data, x_data, 'o')
+    axis[0].plot(t_data, y_data, 'o')
+    axis[0].set_title("Observed Data")
+
+    axis[1].plot(t_data, prey, label='Prey')
+    axis[1].plot(t_data, predator, label='Predator')
+    axis[1].set_title("Lotka-Volterra Model")
+
+    fig.suptitle(f"Lotka-Volterra Model\n given by $\\alpha = 0.57104693$, $\\beta = 0.47572982$, $\\delta = 0.93209038$, $\\gamma = 1.1220162$")
+    fig.supxlabel("Time")
+    fig.supylabel("Population")
+    fig.legend()
+
+    plt.tight_layout()
+    plt.gcf().set_dpi(300)
+    plt.savefig("visualization/lotka_volterra.png")
+    plt.show()
