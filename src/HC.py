@@ -34,8 +34,8 @@ def hill_climbing(objective, proposal_func, true_data, init_params, max_iter, to
         if np.abs(best_error - new_error) < tol:
             break
 
-        if i % 100 == 0:
-            print(f"Iteration {i}, Best Value: {best_params}")
+        # if i % 100 == 0:
+        #     print(f"Iteration {i}, Best Value: {best_params}")
 
     return best_params, best_error
  

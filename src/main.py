@@ -1,8 +1,8 @@
 from scipy.integrate import odeint
 import numpy as np
 import matplotlib.pyplot as plt
-import SA as SA
-import HC as HC
+import SA
+import HC
 
 def load_data():
     """
@@ -72,11 +72,43 @@ def plot_model(t_data, x_data, y_data, sim_data):
     plt.savefig("visualization/lotka_volterra.png")
     plt.show()
 
-def bootstrapping(data_points):
-    pass
+def plot_mse(N_boot, max_boot, objective, initial_params, proposal_func, max_iter, tol):
+    boot_range = np.array(range(0, max_boot))
+    mse = np.zeros(max_boot)
+    
+    for i in boot_range:
+        mean_mse = 0
+        for _ in range(N_boot):
+            boot_data = bootstrapping(i)
+            _, best_mse = HC.hill_climbing(
+            objective, proposal_func, boot_data, initial_params, max_iter, tol
+            )
+            mean_mse += best_mse
+        mse[i] = mean_mse / N_boot
+    
+    plt.plot(boot_range, mse)
+    plt.xlabel("Number of Data Points Removed")
+    plt.ylabel("Mean Squared Error")
+    plt.title("Mean Squared Error vs. Number of Data Points")
+    plt.savefig("../visualization/mse_vs_data_points.png")
+    plt.show()
+
+def bootstrapping(num_data_points):
+    """
+    Perform bootstrapping to generate new data
+    """
+    true_data = load_data()
+    length = len(true_data[0])
+
+    indices = np.random.choice(length, num_data_points, replace=False)
+    result_data = tuple(
+        np.delete(data, indices) for data in true_data
+    )
+    return result_data
 
 if __name__ == "__main__":
     true_data = load_data()
+    bootstrap_data = bootstrapping(10)
 
     initial_params = np.array([1.0, 0.1, 0.1, 1.0])  # Initial guess for [alpha, beta, delta, gamma]
     bounds = [(0.01, 2.0), (0.01, 2.0), (0.01, 2.0), (0.01, 2.0)]  # Parameter bounds
@@ -84,14 +116,13 @@ if __name__ == "__main__":
     alpha = 0.9  # Cooling rate
     max_iter = 1000  # Maximum iterations
     tol = 10**-4
-    NOISE_STD = 0.01
 
     # best_params, best_mse = SA.simulated_annealing(
     #     objective, true_data, initial_params, bounds, proposal_func, initial_temp, alpha, max_iter
     # )
 
     best_params, best_mse = HC.hill_climbing(
-        objective, proposal_func, true_data, initial_params, max_iter, tol
+        objective, proposal_func, bootstrap_data, initial_params, max_iter, tol
     )
 
     print("Best Parameters (alpha, beta, delta, gamma):", best_params)
