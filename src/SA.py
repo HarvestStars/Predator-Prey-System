@@ -1,6 +1,6 @@
 import numpy as np
 
-def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_func, initial_temp, alpha, max_iter, noise=False):
+def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_func, initial_temp, alpha, max_iter):
     """
     Simulated Annealing Algorithm using Metropolis-Hastings sampling.
 
@@ -21,7 +21,7 @@ def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_
     """
     # Initialize
     x_current_state = initial_state
-    h_current_value = objective_h(x_current_state, *true_data, noise)
+    h_current_value = objective_h(x_current_state, *true_data)
     best_state = x_current_state
     best_value = h_current_value
     temperature = initial_temp
@@ -32,7 +32,7 @@ def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_
         # Step 1: Generate a new candidate state using proposal function
         x_new_state = proposal_func(x_current_state)
         x_new_state = np.clip(x_new_state, *zip(*bounds))  # Ensure parameters stay within bounds
-        h_new_value = objective_h(x_new_state, *true_data, noise)
+        h_new_value = objective_h(x_new_state, *true_data)
 
         # Step 2: Compute the acceptance probability
         delta = h_new_value - h_current_value

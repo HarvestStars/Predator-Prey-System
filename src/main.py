@@ -20,50 +20,29 @@ def lotka_volterra(y, t, alpha, beta, delta, gamma):
     dydt = delta * x * y - gamma * y
     return [dxdt, dydt]
 
-def lokta_volterra_noise(y, t, alpha_mean, beta_mean, delta_mean, gamma_mean):
-    """
-    This is the same as the lotka_volterra function, but with noise added to the parameters
-    """
-    x, y = y
-
-    alpha = np.random.normal(alpha_mean, NOISE_STD)
-    beta = np.random.normal(beta_mean, NOISE_STD)
-    gamma = np.random.normal(delta_mean, NOISE_STD)
-    delta = np.random.normal(gamma_mean, NOISE_STD)
-
-    dxdt = alpha * x - beta * x * y
-    dydt = delta * x * y - gamma * y
-    return [dxdt, dydt]
-
 def proposal_func(x):
     """
     Symetric proposal function to generate a new state
     """
     return x + np.random.normal(0, 0.1, size=x.shape)
 
-def objective(params, t_data, x_data, y_data, noise=False):
+def objective(params, t_data, x_data, y_data):
     """
     Objective function to minimize (sum of squared errors)
     """
     alpha, beta, delta, gamma = params
     y0 = [x_data[0], y_data[0]]  # Initial condition
-    if noise:
-        solution = odeint(lokta_volterra_noise, y0, t_data, args=(alpha, beta, delta, gamma))
-    else:
-        solution = odeint(lotka_volterra, y0, t_data, args=(alpha, beta, delta, gamma))
+    solution = odeint(lotka_volterra, y0, t_data, args=(alpha, beta, delta, gamma))
     x_sim, y_sim = solution[:, 0], solution[:, 1]
     mse = np.mean((x_sim - x_data)**2 + (y_sim - y_data)**2)  # Mean Squared Error
     return mse
 
-def compute_model(t_data, x_data, y_data, alpha, beta, delta, gamma, noise=False):
+def compute_model(t_data, x_data, y_data, alpha, beta, delta, gamma):
     """
     Compute the Lotka-Volterra model using the best parameters
     """
     y0 = [x_data[0], y_data[0]]
-    if noise:
-        solution = odeint(lokta_volterra_noise, y0, t_data, args=(alpha, beta, delta, gamma))
-    else:
-        solution = odeint(lotka_volterra, y0, t_data, args=(alpha, beta, delta, gamma))
+    solution = odeint(lotka_volterra, y0, t_data, args=(alpha, beta, delta, gamma))
     prey = solution[:, 0]
     predator = solution[:, 1]
     return prey, predator
@@ -112,7 +91,7 @@ if __name__ == "__main__":
     # )
 
     best_params, best_mse = HC.hill_climbing(
-        objective, proposal_func, true_data, initial_params, max_iter, tol, True
+        objective, proposal_func, true_data, initial_params, max_iter, tol
     )
 
     print("Best Parameters (alpha, beta, delta, gamma):", best_params)

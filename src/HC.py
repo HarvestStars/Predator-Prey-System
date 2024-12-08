@@ -1,6 +1,6 @@
 import numpy as np
 
-def hill_climbing(objective, proposal_func, true_data, init_params, max_iter, tol, noise=False):
+def hill_climbing(objective, proposal_func, true_data, init_params, max_iter, tol):
     """
     Hill Climbing Algorithm.
 
@@ -20,11 +20,11 @@ def hill_climbing(objective, proposal_func, true_data, init_params, max_iter, to
     """
     current_params = init_params
     best_params = current_params
-    best_error = objective(current_params, *true_data, noise)
+    best_error = objective(current_params, *true_data)
 
     for i in range(max_iter):
         new_params = proposal_func(current_params)
-        new_error = objective(new_params, *true_data, noise)
+        new_error = objective(new_params, *true_data)
 
         if new_error < best_error:
             best_error = new_error
