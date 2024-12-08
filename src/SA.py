@@ -1,24 +1,27 @@
 import numpy as np
 
-def simulated_annealing(objective_h, t_data, x_data, y_data, initial_state, bounds, proposal_func, initial_temp, alpha, max_iter):
+def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_func, initial_temp, alpha, max_iter, noise=False):
     """
     Simulated Annealing Algorithm using Metropolis-Hastings sampling.
 
     Parameters:
+    ------------
     - objective_h: callable, the objective function `h(x)` to minimize.
     - initial_state: array-like, the initial state `x0`.
     - proposal_func: callable, generates a new state `x_i+1'` given current state `x_i`, e.g., normal distribution, N(x_i, sigma).
     - initial_temp: float, the initial temperature `T0`.
     - alpha: float, cooling rate (e.g., 0.9).
     - max_iter: int, maximum number of iterations.
+    - noise: bool, whether to add noise to the data.
 
     Returns:
+    ------------
     - best_state: array-like, the best state found.
     - best_value: float, the value of the objective function at the best state.
     """
     # Initialize
-    x_current_state = np.array(initial_state)
-    h_current_value = objective_h(x_current_state, t_data, x_data, y_data)
+    x_current_state = initial_state
+    h_current_value = objective_h(x_current_state, *true_data, noise)
     best_state = x_current_state
     best_value = h_current_value
     temperature = initial_temp
@@ -29,7 +32,7 @@ def simulated_annealing(objective_h, t_data, x_data, y_data, initial_state, boun
         # Step 1: Generate a new candidate state using proposal function
         x_new_state = proposal_func(x_current_state)
         x_new_state = np.clip(x_new_state, *zip(*bounds))  # Ensure parameters stay within bounds
-        h_new_value = objective_h(x_new_state, t_data, x_data, y_data)
+        h_new_value = objective_h(x_new_state, *true_data, noise)
 
         # Step 2: Compute the acceptance probability
         delta = h_new_value - h_current_value
