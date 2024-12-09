@@ -1,6 +1,16 @@
 import numpy as np
 
-def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_func, initial_temp, alpha, max_iter):
+
+def simulated_annealing(
+    objective_h,
+    true_data,
+    initial_state,
+    bounds,
+    proposal_func,
+    initial_temp,
+    alpha,
+    max_iter,
+):
     """
     Simulated Annealing Algorithm using Metropolis-Hastings sampling.
 
@@ -28,15 +38,17 @@ def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_
 
     for i in range(max_iter):
         # TODO: record each iteration's the h_new_value and x_new_state.
-        
+
         # Step 1: Generate a new candidate state using proposal function
         x_new_state = proposal_func(x_current_state)
-        x_new_state = np.clip(x_new_state, *zip(*bounds))  # Ensure parameters stay within bounds
+        x_new_state = np.clip(
+            x_new_state, *zip(*bounds)
+        )  # Ensure parameters stay within bounds
         h_new_value = objective_h(x_new_state, *true_data)
 
         # Step 2: Compute the acceptance probability
         delta = h_new_value - h_current_value
-        acceptance_prob = min(1, np.exp(-delta / temperature))
+        acceptance_prob = min(1, np.exp(-delta * temperature))
 
         # Step 3: Decide whether to accept the new state
         if delta < 0 or np.random.rand() < acceptance_prob:
@@ -52,7 +64,9 @@ def simulated_annealing(objective_h, true_data, initial_state, bounds, proposal_
         temperature *= alpha
 
         # Optional: Print progress
-        if i % 100 == 0:
-            print(f"Iteration {i}, Temperature: {temperature:.4f}, Best Value: {best_value:.4f}")
+        # if i % 50 == 0:
+        #     print(
+        #         f"Iteration {i}, Temperature: {temperature:.4f}, Best Value: {best_value:.4f}"
+        #     )
 
     return best_state, best_value
