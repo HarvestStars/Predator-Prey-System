@@ -79,7 +79,7 @@ def importance_check(x_data, y_data, t_data, weighted_objective, global_SA_param
     - t_data: array, time data.
     - weighted_objective: function, objective function with weights.
     - global_SA_param: SA parameters, [initial_state, bounds, proposal_func, initial_temp, alpha, max_iter].
-    - global_objective: float, global objective value for the best parameters.
+    - global_objective: function, global objective function without weights.
     - global_ODE_param: list, globally optimized parameters [alpha, beta, delta, gamma].
     - repeat: int, number of times to repeat the SA algorithm.
 
